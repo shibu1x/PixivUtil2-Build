@@ -1,0 +1,54 @@
+version: '3'
+
+dotenv: ['.env']
+
+env:
+  NAME: pixivutil2
+  WORK_DIR: ./build
+  GITHUB_REPO: https://github.com/Nandaka/PixivUtil2
+
+tasks:
+  prepare:
+    desc: "Create working directory and fetch source code"
+    cmds:
+      - rm -rf {{.WORK_DIR}}
+      - mkdir {{.WORK_DIR}}
+      - |
+        curl -L {{.GITHUB_REPO}}/archive/refs/heads/master.tar.gz | \
+        tar -xz --strip-components=1 -C {{.WORK_DIR}}
+      - cp .dockerignore {{.WORK_DIR}}/
+      - cp Dockerfile {{.WORK_DIR}}/
+    silent: true
+
+  build:
+    desc: "Execute Docker build"
+    deps:
+      - prepare
+    cmds:
+      - task: amd
+        vars:
+          VERSION: latest
+
+  amd:
+    internal: true
+    cmds:
+      - | 
+        cd {{.WORK_DIR}} && \
+        docker buildx build \
+          --builder ${AMD64_BUILDER} \
+          --platform linux/amd64 \
+          --build-arg apt_cacher=${APT_CACHER} \
+          --push -t ${REGISTRY}/${NAME}:{{.VERSION}} .
+      - ssh ${REMOTE_HOST} "docker pull ${REGISTRY}/${NAME}:{{.VERSION}}"
+    silent: true
+
+  arm:
+    internal: true
+    cmds:
+      - | 
+        cd {{.WORK_DIR}} && \
+        docker buildx build \
+          --platform linux/arm64 \
+          --build-arg apt_cacher=${APT_CACHER} \
+          --push -t ${REGISTRY}/${NAME}:latest .
+    silent: true
