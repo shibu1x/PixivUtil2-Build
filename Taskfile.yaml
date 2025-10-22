@@ -16,8 +16,7 @@ tasks:
       - |
         curl -L {{.GITHUB_REPO}}/archive/refs/heads/master.tar.gz | \
         tar -xz --strip-components=1 -C {{.WORK_DIR}}
-      - cp .dockerignore {{.WORK_DIR}}/
-      - cp Dockerfile {{.WORK_DIR}}/
+      - cp -r overwrite/. {{.WORK_DIR}}/
     silent: true
 
   build:
