@@ -1,8 +1,0 @@
-Dockerfile*
-*.md
-*.dll
-__pycache__
-pixivutil.log*
-taskfile.yaml
-config.ini
-*.sqlite

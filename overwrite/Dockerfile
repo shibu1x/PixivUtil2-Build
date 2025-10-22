@@ -16,3 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt \
     && mkdir /data
 
 COPY . .
+
+# Set up entrypoint
+RUN chmod +x entrypoint.sh
+ENTRYPOINT ["./entrypoint.sh"]

@@ -49,9 +49,25 @@ task prepare
 The build task performs the following steps:
 
 1. **Prepare**: Downloads latest PixivUtil2 source from GitHub master branch
-2. **Build**: Creates Docker image using buildx for specified architecture
-3. **Push**: Uploads image to private registry
-4. **Deploy**: (amd64 only) SSH to remote host and pulls the new image
+2. **Overwrite**: Copies custom files from `overwrite/` directory (Dockerfile, entrypoint.sh, .dockerignore)
+3. **Build**: Creates Docker image using buildx for specified architecture
+4. **Push**: Uploads image to private registry
+5. **Deploy**: (amd64 only) SSH to remote host and pulls the new image
+
+### Running the Container
+
+The built image includes an entrypoint that allows passing arguments to PixivUtil2:
+
+```bash
+# Run with arguments
+docker run ${REGISTRY}/pixivutil2:latest --download --user=username
+
+# Run interactively
+docker run -it ${REGISTRY}/pixivutil2:latest
+
+# Mount data directory
+docker run -v /path/to/data:/data ${REGISTRY}/pixivutil2:latest --download
+```
 
 ## Architecture
 
@@ -65,7 +81,10 @@ The build task performs the following steps:
 ```
 .
 ├── Taskfile.yaml      # Build automation tasks
-├── Dockerfile         # Container definition
+├── overwrite/         # Files to overlay on upstream PixivUtil2
+│   ├── Dockerfile     # Container definition
+│   ├── entrypoint.sh  # Entrypoint script for passing arguments
+│   └── .dockerignore  # Docker build exclusions
 ├── .env              # Environment configuration
 └── build/            # Temporary build directory (auto-generated)
 ```

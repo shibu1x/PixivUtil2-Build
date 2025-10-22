@@ -17,7 +17,10 @@ The build process follows this workflow:
 ### Key Components
 
 - **Taskfile.yaml**: Task automation using Task (taskfile.dev). Contains all build and deployment logic
-- **Dockerfile**: Python-based container with APT caching support for faster builds
+- **overwrite/**: Directory containing files to overlay on top of upstream PixivUtil2 source
+  - **Dockerfile**: Python-based container with APT caching support and entrypoint configuration
+  - **entrypoint.sh**: Shell script that passes arguments to PixivUtil2.py
+  - **.dockerignore**: Excludes dotfiles and build artifacts from Docker context
 - **.env**: Environment configuration for registry, builders, and remote hosts
 - **build/**: Temporary working directory created during builds (gitignored)
 
@@ -53,12 +56,22 @@ Required variables in `.env`:
 
 The `build` task depends on `prepare`, ensuring source code is always fresh before building.
 
+### Overwrite Pattern
+
+The build process uses an "overwrite" pattern to customize upstream PixivUtil2:
+
+1. `prepare` task downloads upstream PixivUtil2 source to `{{.WORK_DIR}}`
+2. Contents of `overwrite/` directory are copied on top, replacing/adding files
+3. This allows customization (Dockerfile, entrypoint, .dockerignore) without forking PixivUtil2
+
+To add custom files to the Docker image, place them in the `overwrite/` directory.
+
 ### Docker Build Context
 
-- Dockerfile and .dockerignore are copied into the build directory during preparation
 - Build commands `cd` into `{{.WORK_DIR}}` before running docker buildx
 - Build context is `.` (current directory after cd), not a subdirectory
 - The Dockerfile uses `--build-arg apt_cacher` to optionally configure APT proxy
+- entrypoint.sh allows passing arguments to PixivUtil2.py: `docker run <image> --download --user=username`
 
 ### Multi-Architecture Support
 
