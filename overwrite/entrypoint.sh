@@ -1,5 +1,10 @@
 #!/bin/bash
 set -e
 
-# Execute PixivUtil2.py with all passed arguments
-exec python PixivUtil2.py "$@"
+# If arguments are provided, pass them to python
+if [ $# -gt 0 ]; then
+    exec python PixivUtil2.py "$@"
+else
+    # If no arguments, start an interactive shell
+    exec /bin/bash
+fi
