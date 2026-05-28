@@ -19,35 +19,34 @@ tasks:
     silent: true
 
   build:
-    desc: "Execute Docker build"
-    deps:
-      - prepare
     cmds:
+      - task: prepare
       - task: amd
-        vars:
-          VERSION: latest
+      - docker buildx imagetools create -t ${REGISTRY}/${APP_NAME}:latest ${REGISTRY}/${APP_NAME}:amd
+      - ssh ${REMOTE_HOST} "docker pull ${REGISTRY}/${APP_NAME}:latest"
       - say -v Samantha "The Docker build is complete."
 
   amd:
     internal: true
-    dir: build
+    dir: "{{.WORK_DIR}}"
     cmds:
       - |
         docker buildx build \
           --builder ${AMD64_BUILDER} \
           --platform linux/amd64 \
           --build-arg apt_cacher=${APT_CACHER} \
-          --push -t ${REGISTRY}/${APP_NAME}:{{.VERSION}} .
-      - ssh ${REMOTE_HOST} "docker pull ${REGISTRY}/${APP_NAME}:{{.VERSION}}"
+          --push \
+          -t ${REGISTRY}/${APP_NAME}:amd .
     silent: true
 
   arm:
     internal: true
-    dir: build
+    dir: "{{.WORK_DIR}}"
     cmds:
       - |
         docker buildx build \
           --platform linux/arm64 \
           --build-arg apt_cacher=${APT_CACHER} \
-          --push -t ${REGISTRY}/${APP_NAME}:{{.VERSION}} .
+          --push \
+          -t ${REGISTRY}/${APP_NAME}:arm .
     silent: true
