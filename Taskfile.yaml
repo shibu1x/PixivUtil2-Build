@@ -1,9 +1,8 @@
-version: '3'
+version: "3"
 
-dotenv: ['.env']
+dotenv: [".env"]
 
 env:
-  NAME: pixivutil2
   WORK_DIR: ./build
   GITHUB_REPO: https://github.com/Nandaka/PixivUtil2
 
@@ -16,7 +15,7 @@ tasks:
       - |
         curl -L {{.GITHUB_REPO}}/archive/refs/heads/master.tar.gz | \
         tar -xz --strip-components=1 -C {{.WORK_DIR}}
-      - cp -r overwrite/. {{.WORK_DIR}}/
+      - cp -r app/. {{.WORK_DIR}}/
     silent: true
 
   build:
@@ -27,27 +26,28 @@ tasks:
       - task: amd
         vars:
           VERSION: latest
+      - say -v Samantha "The Docker build is complete."
 
   amd:
     internal: true
+    dir: build
     cmds:
-      - | 
-        cd {{.WORK_DIR}} && \
+      - |
         docker buildx build \
           --builder ${AMD64_BUILDER} \
           --platform linux/amd64 \
           --build-arg apt_cacher=${APT_CACHER} \
-          --push -t ${REGISTRY}/${NAME}:{{.VERSION}} .
-      - ssh ${REMOTE_HOST} "docker pull ${REGISTRY}/${NAME}:{{.VERSION}}"
+          --push -t ${REGISTRY}/${APP_NAME}:{{.VERSION}} .
+      - ssh ${REMOTE_HOST} "docker pull ${REGISTRY}/${APP_NAME}:{{.VERSION}}"
     silent: true
 
   arm:
     internal: true
+    dir: build
     cmds:
-      - | 
-        cd {{.WORK_DIR}} && \
+      - |
         docker buildx build \
           --platform linux/arm64 \
           --build-arg apt_cacher=${APT_CACHER} \
-          --push -t ${REGISTRY}/${NAME}:latest .
+          --push -t ${REGISTRY}/${APP_NAME}:{{.VERSION}} .
     silent: true
